@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { User } from 'src/users/entities/user.entity';
 
 @Entity()
 export class Todo {
@@ -50,6 +57,7 @@ export class Todo {
   done: boolean;
 
   @Column({
+    name: 'due_date',
     type: 'timestamp',
     nullable: true,
   })
@@ -62,15 +70,26 @@ export class Todo {
   dueDate: Date | null;
 
   @Column({
+    name: 'when_created',
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
   })
   whenCreated: Date;
 
   @Column({
+    name: 'when_finished',
     type: 'timestamp',
-    default: () => 'CURRENT_TIMESTAMP',
-    onUpdate: 'CURRENT_TIMESTAMP',
+    nullable: true,
   })
-  whenFinished: Date;
+  @ApiProperty({
+    description: 'The date and time when the todo item was completed',
+    type: String,
+    format: 'date-time',
+    nullable: true,
+  })
+  whenFinished: Date | null;
+
+  @ManyToOne(() => User, (user) => user.todos)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 }

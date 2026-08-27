@@ -79,6 +79,6 @@ export class User {
   @Exclude()
   password: string;
 
-  @OneToMany(() => Todo, (todo) => todo)
+  @OneToMany(() => Todo, (todo) => todo.user)
   todos: Todo[];
 }
