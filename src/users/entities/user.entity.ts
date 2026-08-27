@@ -36,17 +36,6 @@ export class User {
   @Exclude()
   password: string;
 
-  /** Supabase Storage 안의 파일 경로. URL은 저장하지 않는다 */
-  @Column({
-    type: 'varchar',
-    length: 500,
-    nullable: true,
-  })
-  profileImg: string | null;
-
-  /** DB 컬럼이 아니라 응답에만 채워주는 값 */
-  profileImgUrl?: string;
-
   @OneToMany(() => Todo, (todo) => todo)
   todos: Todo[];
 }
