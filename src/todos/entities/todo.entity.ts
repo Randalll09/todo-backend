@@ -10,7 +10,7 @@ export class Todo {
     format: 'uuid',
     nullable: false,
   })
-  id!: string;
+  id: string;
 
   @Column({
     type: 'varchar',
@@ -59,7 +59,7 @@ export class Todo {
     format: 'date-time',
     nullable: true,
   })
-  due_date: Date | null;
+  dueDate: Date | null;
 
   @Column({
     type: 'timestamp',
