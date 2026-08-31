@@ -19,6 +19,7 @@ export class User {
     type: 'varchar',
     length: 255,
     nullable: true,
+    select: false,
   })
   @ApiProperty({
     description: 'The refresh token associated with the user',
@@ -57,6 +58,7 @@ export class User {
   @Column({
     type: 'varchar',
     length: 255,
+    unique: true,
   })
   @ApiProperty({
     description: 'The email address of the user',
@@ -69,6 +71,7 @@ export class User {
   @Column({
     type: 'varchar',
     length: 255,
+    select: false,
   })
   @ApiProperty({
     description: 'The password of the user',
