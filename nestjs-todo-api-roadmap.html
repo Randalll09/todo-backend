@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>*,*::before,*::after{box-sizing:border-box}body{margin:0}</style>
+<title>NestJS 투두 API 로드맵</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&display=swap">
+
+<style>
+:root {
+  --ground: #F3F5F8;
+  --surface: #FFFFFF;
+  --surface-sunk: #EDF0F4;
+  --ink: #16202B;
+  --ink-soft: #3D4E5E;
+  --muted: #64737F;
+  --line: #DCE2E9;
+  --line-soft: #E8ECF1;
+  --accent: #2D5F8B;
+  --accent-soft: #E4EDF5;
+  --warn: #A0522D;
+  --warn-soft: #F6EBE3;
+  --learn: #2C7462;
+  --learn-soft: #E2EFEA;
+  --shadow: 0 1px 2px rgba(22, 32, 43, .05), 0 8px 24px -16px rgba(22, 32, 43, .22);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #0E141A;
+    --surface: #161E26;
+    --surface-sunk: #1B242D;
+    --ink: #E3E9EE;
+    --ink-soft: #C0CBD5;
+    --muted: #8896A3;
+    --line: #26313B;
+    --line-soft: #202A33;
+    --accent: #7FB3DE;
+    --accent-soft: #1B2A38;
+    --warn: #DE9468;
+    --warn-soft: #2B2119;
+    --learn: #6BBFA6;
+    --learn-soft: #16281F;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px -16px rgba(0, 0, 0, .8);
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground: #0E141A;
+  --surface: #161E26;
+  --surface-sunk: #1B242D;
+  --ink: #E3E9EE;
+  --ink-soft: #C0CBD5;
+  --muted: #8896A3;
+  --line: #26313B;
+  --line-soft: #202A33;
+  --accent: #7FB3DE;
+  --accent-soft: #1B2A38;
+  --warn: #DE9468;
+  --warn-soft: #2B2119;
+  --learn: #6BBFA6;
+  --learn-soft: #16281F;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px -16px rgba(0, 0, 0, .8);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: "IBM Plex Sans KR", system-ui, -apple-system, "Malgun Gothic", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+  word-break: keep-all;
+}
+
+.wrap {
+  max-width: 940px;
+  margin: 0 auto;
+  padding: 0 24px 96px;
+}
+
+/* ---------- progress rail ---------- */
+.rail {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: color-mix(in srgb, var(--ground) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line-soft);
+}
+.rail-inner {
+  max-width: 940px;
+  margin: 0 auto;
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.rail-label {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.bar {
+  flex: 1;
+  height: 4px;
+  background: var(--surface-sunk);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.bar > i {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform .35s cubic-bezier(.4, 0, .2, 1);
+}
+.rail-count {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+/* ---------- header ---------- */
+header.top { padding: 64px 0 8px; }
+
+.eyebrow {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11.5px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 18px;
+}
+
+h1 {
+  font-size: clamp(30px, 5vw, 44px);
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  margin: 0 0 18px;
+  text-wrap: balance;
+}
+
+.lede {
+  font-size: 17px;
+  color: var(--ink-soft);
+  max-width: 62ch;
+  margin: 0 0 28px;
+  font-weight: 300;
+}
+
+.stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.chip {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--surface);
+  color: var(--ink-soft);
+}
+
+hr.rule {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 48px 0;
+}
+
+/* ---------- section headings ---------- */
+h2 {
+  font-size: 13px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 24px;
+}
+
+/* ---------- principles ---------- */
+.principles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 20px;
+}
+.principle {
+  border-top: 2px solid var(--accent);
+  padding-top: 14px;
+}
+.principle h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+.principle p {
+  margin: 0;
+  font-size: 14.5px;
+  color: var(--ink-soft);
+  line-height: 1.7;
+}
+
+/* ---------- diagram ---------- */
+.diagram {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 20px;
+  overflow-x: auto;
+  box-shadow: var(--shadow);
+}
+.erd {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+.ent {
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  overflow: hidden;
+  background: var(--surface);
+}
+.ent > h4 {
+  margin: 0;
+  padding: 9px 13px;
+  background: var(--surface-sunk);
+  border-bottom: 1px solid var(--line);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  color: var(--accent);
+}
+.ent dl {
+  margin: 0;
+  padding: 8px 13px 11px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 10px;
+  align-items: baseline;
+}
+.ent dt {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.ent dd {
+  margin: 0;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10.5px;
+  letter-spacing: .06em;
+  color: var(--muted);
+  text-align: right;
+}
+.ent dd.key { color: var(--accent); font-weight: 600; }
+.rels {
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.rels li { white-space: nowrap; }
+.rels b { color: var(--accent); font-weight: 600; }
+.note {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 14px 0 0;
+}
+
+/* ---------- phase cards ---------- */
+.phases {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.phase {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.phase-head {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 20px 24px 0;
+}
+.num {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: .06em;
+}
+.phase-head h3 {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  margin: 0;
+  flex: 1;
+  min-width: 180px;
+}
+.dur {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.why {
+  margin: 10px 24px 0;
+  padding: 12px 14px;
+  background: var(--accent-soft);
+  border-radius: 4px;
+  font-size: 14.5px;
+  color: var(--ink-soft);
+  line-height: 1.65;
+}
+.why b { color: var(--ink); font-weight: 600; }
+
+.phase-body { padding: 16px 24px 24px; }
+
+ul.check {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+ul.check > li { margin: 0; }
+
+ul.check label {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  padding: 5px 8px 5px 0;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 15px;
+  line-height: 1.65;
+  transition: color .15s;
+}
+ul.check label:hover { color: var(--accent); }
+ul.check input[type="checkbox"] {
+  appearance: none;
+  flex: none;
+  width: 15px;
+  height: 15px;
+  margin-top: 6px;
+  border: 1.5px solid var(--line);
+  border-radius: 3px;
+  background: var(--surface);
+  cursor: pointer;
+  position: relative;
+  transition: background .15s, border-color .15s;
+}
+ul.check input[type="checkbox"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+ul.check input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid var(--surface);
+  border-width: 0 1.8px 1.8px 0;
+  transform: rotate(42deg);
+}
+ul.check input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+ul.check input:checked + span {
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--line);
+}
+
+code, .mono {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: .88em;
+  background: var(--surface-sunk);
+  padding: 1.5px 5px;
+  border-radius: 3px;
+  word-break: break-all;
+}
+
+/* ---------- callouts ---------- */
+.call {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 4px;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+.call .tag {
+  display: block;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+.call p { margin: 0 0 8px; }
+.call p:last-child { margin-bottom: 0; }
+.call.trap { background: var(--warn-soft); border-left: 2px solid var(--warn); }
+.call.trap .tag { color: var(--warn); }
+.call.learn { background: var(--learn-soft); border-left: 2px solid var(--learn); }
+.call.learn .tag { color: var(--learn); }
+.call code { background: color-mix(in srgb, var(--ink) 8%, transparent); }
+
+/* ---------- table ---------- */
+.tablewrap { overflow-x: auto; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14.5px;
+}
+th, td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line-soft);
+}
+th {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 500;
+  border-bottom-color: var(--line);
+}
+td.n {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+tr.total td {
+  border-bottom: none;
+  border-top: 1px solid var(--line);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* ---------- links ---------- */
+.links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+.links a {
+  display: block;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 14.5px;
+  transition: border-color .15s, color .15s;
+}
+.links a:hover, .links a:focus-visible { border-color: var(--accent); color: var(--accent); }
+.links a span {
+  display: block;
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.links a:hover span { color: var(--muted); }
+
+footer {
+  margin-top: 56px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line-soft);
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+@media (max-width: 560px) {
+  .wrap { padding: 0 18px 72px; }
+  .rail-inner { padding: 10px 18px; }
+  .phase-head, .phase-body { padding-left: 18px; padding-right: 18px; }
+  .why { margin-left: 18px; margin-right: 18px; }
+}
+</style>
+</head>
+<body>
+
+
+<div class="rail">
+  <div class="rail-inner">
+    <span class="rail-label">진행률</span>
+    <div class="bar"><i id="fill"></i></div>
+    <span class="rail-count" id="count">0 / 0</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+<header class="top">
+  <p class="eyebrow">Study Project · Backend Roadmap</p>
+  <h1>친구 기능이 있는 투두 API,<br>어떤 순서로 쌓아 올릴까</h1>
+  <p class="lede">인증부터 시작해 한 기능씩 끝까지 완성하며 올라가는 9단계. 각 단계마다 실제로 걸려 넘어지는 지점과, 그 단계에서만 배울 수 있는 것을 함께 적었습니다.</p>
+  <div class="stack">
+    <span class="chip">NestJS</span>
+    <span class="chip">TypeORM</span>
+    <span class="chip">PostgreSQL</span>
+    <span class="chip">S3 / R2</span>
+    <span class="chip">JWT</span>
+    <span class="chip">Docker</span>
+    <span class="chip">Tauri</span>
+  </div>
+</header>
+
+<hr class="rule">
+
+<section>
+  <h2>관통하는 원칙</h2>
+  <div class="principles">
+    <div class="principle">
+      <h3>세로로 자르기</h3>
+      <p>엔티티를 다 만들고 컨트롤러를 다 만드는 방식은 마지막까지 아무것도 안 돌아갑니다. 기능 하나를 DB에서 API 응답까지 끝내고 다음으로 넘어가세요.</p>
+    </div>
+    <div class="principle">
+      <h3>매 단계 끝에 호출해 보기</h3>
+      <p>“컴파일되니까 됐겠지”가 가장 비싼 착각입니다. Swagger UI나 <code>.http</code> 파일로 직접 때려보고 넘어가세요.</p>
+    </div>
+    <div class="principle">
+      <h3>기능 단위로 커밋</h3>
+      <p>공부용이라면 커밋 로그가 곧 학습 기록입니다. 한 달 뒤 “내가 뭘 배웠지”에 답해주는 건 코드가 아니라 히스토리예요.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section>
+  <h2>최종 데이터 모델</h2>
+  <div class="diagram">
+    <div class="erd">
+
+      <div class="ent">
+        <h4>USER</h4>
+        <dl>
+          <dt>id</dt><dd class="key">uuid pk</dd>
+          <dt>email</dt><dd class="key">unique</dd>
+          <dt>password_hash</dt><dd>text</dd>
+          <dt>nickname</dt><dd>text</dd>
+          <dt>created_at</dt><dd>timestamptz</dd>
+        </dl>
+      </div>
+
+      <div class="ent">
+        <h4>TODO</h4>
+        <dl>
+          <dt>id</dt><dd class="key">uuid pk</dd>
+          <dt>owner_id</dt><dd class="key">→ user</dd>
+          <dt>title</dt><dd>text</dd>
+          <dt>done</dt><dd>boolean</dd>
+          <dt>visibility</dt><dd>private·friends</dd>
+          <dt>due_date</dt><dd>date</dd>
+        </dl>
+      </div>
+
+      <div class="ent">
+        <h4>TODO_IMAGE</h4>
+        <dl>
+          <dt>id</dt><dd class="key">uuid pk</dd>
+          <dt>todo_id</dt><dd class="key">→ todo</dd>
+          <dt>storage_key</dt><dd>s3 object key</dd>
+          <dt>status</dt><dd>pending·confirmed</dd>
+          <dt>size_bytes</dt><dd>int</dd>
+        </dl>
+      </div>
+
+      <div class="ent">
+        <h4>FRIENDSHIP</h4>
+        <dl>
+          <dt>id</dt><dd class="key">uuid pk</dd>
+          <dt>requester_id</dt><dd class="key">→ user</dd>
+          <dt>addressee_id</dt><dd class="key">→ user</dd>
+          <dt>status</dt><dd>pending·accepted·blocked</dd>
+          <dt>created_at</dt><dd>timestamptz</dd>
+        </dl>
+      </div>
+
+    </div>
+    <ul class="rels">
+      <li>USER <b>1 ─── N</b> TODO<span> · 소유</span></li>
+      <li>TODO <b>1 ─── N</b> TODO_IMAGE<span> · 첨부</span></li>
+      <li>USER <b>N ─── N</b> USER<span> · FRIENDSHIP을 통해</span></li>
+    </ul>
+  </div>
+  <p class="note">처음부터 이걸 다 만들지 마세요. 단계마다 필요한 테이블만 추가해 나가는 게 이 로드맵의 요점입니다.</p>
+</section>
+
+<hr class="rule">
+
+<section>
+  <h2>단계</h2>
+  <div class="phases">
+
+    <!-- 0 -->
+    <article class="phase">
+      <div class="phase-head">
+        <span class="num">00</span>
+        <h3>판 깔기</h3>
+        <span class="dur">반나절</span>
+      </div>
+      <div class="phase-body">
+        <ul class="check">
+          <li><label><input type="checkbox" data-k="p0a"><span><code>nest new todo-api</code> — TypeScript, npm</span></label></li>
+          <li><label><input type="checkbox" data-k="p0b"><span>Docker Compose로 Postgres 띄우기 <em>(로컬 설치 말고)</em> — 갈아엎기가 쉬워집니다</span></label></li>
+          <li><label><input type="checkbox" data-k="p0c"><span><code>@nestjs/config</code>로 <code>.env</code> 로드, <code>isGlobal: true</code></span></label></li>
+          <li><label><input type="checkbox" data-k="p0d"><span><code>TypeOrmModule.forRootAsync</code>로 DB 연결</span></label></li>
+          <li><label><input type="checkbox" data-k="p0e"><span><code>GET /health</code>가 DB에 ping 날리고 200 반환하는 것 확인</span></label></li>
+        </ul>
+        <div class="call trap">
+          <span class="tag">함정</span>
+          <p><code>synchronize: true</code>는 편하지만 엔티티에서 컬럼을 지우면 DB 컬럼도 데이터째 날아갑니다. Phase 6에서 마이그레이션으로 갈아탄 뒤에는 다시는 켜지 마세요.</p>
+        </div>
+        <div class="call learn">
+          <span class="tag">학습 포인트</span>
+          <p>NestJS가 왜 모듈과 프로바이더로 쪼개져 있는지. 여기서 DI 컨테이너 감각을 잡아두면 이후 모든 단계가 수월합니다.</p>
+        </div>
+      </div>
+    </article>
+
+    <!-- 1 -->
+    <article class="phase">
+      <div class="phase-head">
+        <span class="num">01</span>
+        <h3>인증 — 회원가입과 로그인</h3>
+        <span class="dur">3~4일</span>
+      </div>
+      <p class="why"><b>왜 여기가 먼저인가.</b> 투두도 이미지도 친구도 전부 “누구의 것이냐”에 달려 있습니다. 인증을 나중에 붙이면 앞서 짠 코드를 거의 다 고치게 돼요. 여기가 전체의 기둥입니다.</p>
+      <div class="phase-body">
+        <ul class="check">
+          <li><label><input type="checkbox" data-k="p1a"><span>User 엔티티 — email(unique), passwordHash, nickname</span></label></li>
+          <li><label><input type="checkbox" data-k="p1b"><span>회원가입 + bcrypt 해싱 (cost 10~12)</span></label></li>
+          <li><label><input type="checkbox" data-k="p1c"><span>로그인 → <code>@nestjs/jwt</code> + <code>passport-jwt</code>로 access token 발급</span></label></li>
+          <li><label><input type="checkbox" data-k="p1d"><span><code>JwtAuthGuard</code>와 <code>@CurrentUser()</code> 커스텀 데코레이터 만들기</span></label></li>
+          <li><label><input type="checkbox" data-k="p1e"><span><code>class-validator</code> DTO + 전역 <code>ValidationPipe({ whitelist: true, transform: true })</code></span></label></li>
+        </ul>
+        <div class="call trap">
+          <span class="tag">함정 둘</span>
+          <p><b>비밀번호 유출</b> — 응답에 <code>passwordHash</code>가 그대로 실려 나갑니다. 엔티티에 <code>@Exclude()</code>를 달고 <code>ClassSerializerInterceptor</code>를 전역 등록하세요.</p>
+          <p><b>친절한 에러 메시지</b> — “가입되지 않은 이메일”과 “비밀번호가 틀렸습니다”를 구분해 주면, 공격자에게 어떤 이메일이 가입돼 있는지 알려주는 셈입니다. 로그인 실패는 한 가지 메시지로.</p>
+        </div>
+        <div class="call learn">
+          <span class="tag">학습 포인트</span>
+          <p>Middleware / Guard / Interceptor / Pipe / Filter가 각각 언제 실행되는지. NestJS를 이해했다는 건 사실상 이 순서를 안다는 뜻입니다.</p>
+          <p>Refresh token은 지금 하지 마세요. access token 하나로 충분하고, Phase 6에서 제대로 붙입니다.</p>
+        </div>
+      </div>
+    </article>
+
+    <!-- 2 -->
+    <article class="phase">
+      <div class="phase-head">
+        <span class="num">02</span>
+        <h3>투두 CRUD</h3>
+        <span class="dur">2~3일</span>
+      </div>
+      <div class="phase-body">
+        <ul class="check">
+          <li><label><input type="checkbox" data-k="p2a"><span>Todo 엔티티 + User와 <code>ManyToOne</code> 관계</span></label></li>
+          <li><label><input type="checkbox" data-k="p2b"><span>생성 / 목록 / 단건 / 수정 / 삭제 5개 엔드포인트</span></label></li>
+          <li><label><input type="checkbox" data-k="p2c"><span>소유권 검사 — 남의 투두 id로 요청하면 어떻게 응답할지 결정</span></label></li>
+          <li><label><input type="checkbox" data-k="p2d"><span>페이지네이션(커서 방식 권장), 완료/미완료 필터, 정렬</span></label></li>
+          <li><label><input type="checkbox" data-k="p2e"><span><code>@nestjs/swagger</code> 붙이기 — 이후 개발 속도가 확 달라집니다</span></label></li>
+        </ul>
+        <div class="call trap">
+          <span class="tag">함정</span>
+          <p><b>403 대신 404를 주세요.</b> 남의 투두에 403을 반환하면 “그 id는 존재한다”는 사실이 새어 나갑니다. 권한이 없으면 애초에 없는 것처럼 취급하는 게 기본입니다.</p>
+          <p><b>N+1 쿼리</b> — 목록 조회에 습관적으로 <code>relations: ['owner']</code>를 붙이면 금방 터집니다. 필요한 컬럼만 QueryBuilder로 가져오세요.</p>
+        </div>
+        <div class="call learn">
+          <span class="tag">학습 포인트</span>
+          <p>서비스 레이어는 HTTP를 몰라야 합니다. 컨트롤러는 요청/응답 변환만, 규칙은 전부 서비스에. 이 선을 지키면 Phase 5의 권한 로직이 훨씬 깔끔해집니다.</p>
+        </div>
+      </div>
+    </article>
+
+    <!-- 3 -->
+    <article class="phase">
+      <div class="phase-head">
+        <span class="num">03</span>
+        <h3>이미지 업로드</h3>
+        <span class="dur">2~3일</span>
+      </div>
+      <div class="phase-body">
+        <ul class="check">
+          <li><label><input type="checkbox" data-k="p3a"><span>버킷 생성 — S3 또는 Cloudflare R2 <em>(R2는 egress 요금이 없어 공부용에 부담이 적습니다)</em></span></label></li>
+          <li><label><input type="checkbox" data-k="p3b"><span><b>1차</b>: Multer로 서버가 파일을 받아 SDK로 업로드 — 먼저 이걸로 성공시키기</span></label></li>
+          <li><label><input type="checkbox" data-k="p3c"><span><b>2차</b>: presigned URL로 리팩터링 — <code>POST /uploads/presign</code>이 서명된 PUT URL을 주고, 클라이언트가 스토리지로 직접 업로드</span></label></li>
+          <li><label><input type="checkbox" data-k="p3d"><span>버킷은 private 유지, 읽기도 presigned GET URL로</span></label></li>
+          <li><label><input type="checkbox" data-k="p3e"><span>검증 — 크기 제한, MIME 화이트리스트, 매직 넘버로 확장자 위조 확인</span></label></li>
+        </ul>
+        <div class="call trap">
+          <span class="tag">함정</span>
+          <p><b>고아 파일.</b> presign을 받아 업로드까지 했는데 투두 저장이 실패하면, 스토리지에만 파일이 남아 영원히 요금을 냅니다. <code>status: pending → confirmed</code> 컬럼을 두고 미확정 파일을 주기적으로 정리하세요. 이 문제를 직접 겪어보는 게 이 단계의 핵심입니다.</p>
+          <p>그리고 버킷을 public으로 열어두지 마세요. 한 번 유출된 URL은 회수할 수 없습니다.</p>
+        </div>
+        <div class="call learn">
+          <span class="tag">학습 포인트</span>
+          <p>“위치(key)는 DB에, 실체는 스토리지에”가 왜 표준인지. presigned 방식은 파일이 서버 메모리와 대역폭을 아예 거치지 않기 때문에, 서버 사양과 무관하게 대용량을 감당합니다.</p>
+        </div>
+      </div>
+    </article>
+
+    <!-- 4 -->
+    <article class="phase">
+      <div class="phase-head">
+        <span class="num">04</span>
+        <h3>친구 관계</h3>
+        <span class="dur">3~4일</span>
+      </div>
+      <p class="why"><b>설계가 가장 재밌는 구간입니다.</b> 여기서 처음으로 “두 사용자 사이의 관계”라는, 소유 관계가 아닌 데이터를 다루게 됩니다.</p>
+      <div class="phase-body">
+        <ul class="check">
+          <li><label><input type="checkbox" data-k="p4a"><span>Friendship 엔티티 — requesterId, addresseeId, status(<code>pending</code>/<code>accepted</code>/<code>blocked</code>)</span></label></li>
+          <li><label><input type="checkbox" data-k="p4b"><span><b>설계 결정</b>: 한 관계를 한 행으로 둘 것인가, 양방향 두 행으로 둘 것인가</span></label></li>
+          <li><label><input type="checkbox" data-k="p4c"><span>요청 보내기 / 받은·보낸 요청 목록 / 수락 / 거절</span></label></li>
+          <li><label><input type="checkbox" data-k="p4d"><span>친구 목록 조회, 친구 삭제, 차단</span></label></li>
+          <li><label><input type="checkbox" data-k="p4e"><span>DB 제약 걸기 — 자기 자신 금지(CHECK), 중복 관계 금지(UNIQUE)</span></label></li>
+        </ul>
+        <div class="call trap">
+          <span class="tag">함정</span>
+          <p><b>서비스 코드 검증만 믿지 마세요.</b> 사용자가 “친구 요청” 버튼을 두 번 빠르게 누르면 두 요청이 동시에 검사를 통과합니다. 한 행 방식이라면 <code>UNIQUE (LEAST(requester_id, addressee_id), GREATEST(...))</code> 같은 제약을 DB에 직접 걸어야 막힙니다.</p>
+          <p>엣지 케이스 목록을 미리 적어두세요 — 자기 자신에게 요청, 이미 친구인데 재요청, A가 B에게 요청한 상태에서 B가 A에게 요청(→ 자동 수락이 자연스럽습니다), 차단된 상대에게 요청.</p>
+        </div>
+        <div class="call learn">
+          <span class="tag">학습 포인트</span>
+          <p>트랜잭션. 수락 처리에서 상태 변경과 부수 작업(알림 생성 등)이 함께 성공하거나 함께 실패해야 하는 이유를 몸으로 익히는 자리입니다.</p>
+        </div>
+      </div>
+    </article>
+
+    <!-- 5 -->
+    <article class="phase">
+      <div class="phase-head">
+        <span class="num">05</span>
+        <h3>친구의 투두 보기</h3>
+        <span class="dur">2일</span>
+      </div>
+      <p class="why"><b>권한 로직의 시험대.</b> 지금까지는 “내 것이냐 아니냐” 둘 중 하나였지만, 여기서 본인 · 친구 · 남 세 갈래가 됩니다.</p>
+      <div class="phase-body">
+        <ul class="check">
+          <li><label><input type="checkbox" data-k="p5a"><span>Todo에 <code>visibility</code> 추가 — <code>private</code> | <code>friends</code></span></label></li>
+          <li><label><input type="checkbox" data-k="p5b"><span><code>GET /users/:id/todos</code> — 본인은 전부, 친구는 공개분만, 남이면 404</span></label></li>
+          <li><label><input type="checkbox" data-k="p5c"><span>이 판단을 어디에 둘지 정하기 — Guard? 서비스? 정책 객체?</span></label></li>
+          <li><label><input type="checkbox" data-k="p5d"><span>친구 전체의 오늘 투두를 모아 보는 피드 <em>(선택)</em></span></label></li>
+        </ul>
+        <div class="call trap">
+          <span class="tag">함정</span>
+          <p><b>친구 목록을 가져와 루프를 돌며 투두를 조회하면</b> 친구 30명에 쿼리 31번입니다. JOIN 한 번으로 끝내세요.</p>
+          <p><b>visibility 필터를 컨트롤러에서 하지 마세요.</b> 엔드포인트가 늘어나면 언젠가 한 곳에서 빠뜨립니다. 리포지토리 레벨에서 강제하는 편이 안전합니다.</p>
+        </div>
+        <div class="call learn">
+          <span class="tag">학습 포인트</span>
+          <p>인증(누구인가)과 인가(무엇을 할 수 있나)는 완전히 다른 문제라는 것. Phase 1에서 만든 Guard는 전자만 해결했을 뿐입니다.</p>
+        </div>
+      </div>
+    </article>
+
+    <!-- 6 -->
+    <article class="phase">
+      <div class="phase-head">
+        <span class="num">06</span>
+        <h3>실무처럼 다듬기</h3>
+        <span class="dur">2~3일</span>
+      </div>
+      <div class="phase-body">
+        <ul class="check">
+          <li><label><input type="checkbox" data-k="p6a"><span>전역 예외 필터로 에러 응답 포맷 통일 — <code>{ code, message, details }</code></span></label></li>
+          <li><label><input type="checkbox" data-k="p6b"><span>구조적 로깅 (<code>nestjs-pino</code>) + 요청 ID 심기</span></label></li>
+          <li><label><input type="checkbox" data-k="p6c"><span><code>@nestjs/throttler</code> — 로그인·회원가입 엔드포인트에는 사실상 필수</span></label></li>
+          <li><label><input type="checkbox" data-k="p6d"><span>Refresh token 도입 — rotation + 재사용 감지</span></label></li>
+          <li><label><input type="checkbox" data-k="p6e"><span>E2E 테스트 한 줄기 (Jest + supertest): 가입 → 로그인 → 투두 생성 → 친구 수락 → 친구 투두 조회</span></label></li>
+          <li><label><input type="checkbox" data-k="p6f"><span>마이그레이션 전환 — <code>synchronize: false</code>, <code>migration:generate</code></span></label></li>
+        </ul>
+        <div class="call trap">
+          <span class="tag">함정</span>
+          <p>테스트를 개발 DB에 돌려서 데이터를 통째로 날리는 일이 흔합니다. 테스트용 Postgres 컨테이너를 따로 띄우세요.</p>
+        </div>
+        <div class="call learn">
+          <span class="tag">학습 포인트</span>
+          <p>E2E 하나를 제대로 짜두면 이후 리팩터링이 두렵지 않아집니다. 유닛 테스트를 100개 짜는 것보다 이 한 줄기가 먼저입니다.</p>
+        </div>
+      </div>
+    </article>
+
+    <!-- 7 -->
+    <article class="phase">
+      <div class="phase-head">
+        <span class="num">07</span>
+        <h3>배포</h3>
+        <span class="dur">1~2일</span>
+      </div>
+      <div class="phase-body">
+        <ul class="check">
+          <li><label><input type="checkbox" data-k="p7a"><span>multi-stage Dockerfile (build → runtime, alpine 기반)</span></label></li>
+          <li><label><input type="checkbox" data-k="p7b"><span>Railway / Fly.io / Render 중 하나 + 매니지드 Postgres</span></label></li>
+          <li><label><input type="checkbox" data-k="p7c"><span>환경변수 분리, 배포 시 마이그레이션 자동 실행</span></label></li>
+          <li><label><input type="checkbox" data-k="p7d"><span>CORS 설정 및 확인</span></label></li>
+        </ul>
+        <div class="call trap">
+          <span class="tag">함정</span>
+          <p><b>Tauri 앱의 오리진은 웹이 아닙니다.</b> <code>tauri://localhost</code>(윈도우에서는 <code>http://tauri.localhost</code>) 형태라 일반적인 CORS 설정으로는 막힙니다. 다음 단계에서 <code>plugin-http</code>를 쓰면 Rust가 요청을 보내기 때문에 CORS 자체가 사라집니다 — 그쪽이 훨씬 편합니다.</p>
+        </div>
+      </div>
+    </article>
+
+    <!-- 8 -->
+    <article class="phase">
+      <div class="phase-head">
+        <span class="num">08</span>
+        <h3>Tauri 클라이언트 붙이기</h3>
+        <span class="dur">1~2주</span>
+      </div>
+      <div class="phase-body">
+        <ul class="check">
+          <li><label><input type="checkbox" data-k="p8a"><span><code>npm create tauri-app@latest</code> → React + TypeScript</span></label></li>
+          <li><label><input type="checkbox" data-k="p8b"><span>토큰 저장 — <code>plugin-store</code> 또는 <code>plugin-stronghold</code></span></label></li>
+          <li><label><input type="checkbox" data-k="p8c"><span><code>plugin-http</code>로 API 호출 (CORS 회피)</span></label></li>
+          <li><label><input type="checkbox" data-k="p8d"><span>이미지 업로드 — 서버가 준 presigned URL로 그대로 PUT</span></label></li>
+          <li><label><input type="checkbox" data-k="p8e"><span>창 크기·트레이 아이콘 등 데스크톱다운 마감</span></label></li>
+          <li><label><input type="checkbox" data-k="p8f"><span><em>(선택)</em> <code>plugin-sql</code>로 오프라인 캐시</span></label></li>
+        </ul>
+        <div class="call trap">
+          <span class="tag">함정</span>
+          <p><b>토큰을 localStorage에 넣지 마세요.</b> 웹에서는 그럭저럭 통하지만 데스크톱 앱은 사용자 PC에 파일로 남습니다. 다른 프로그램이 읽을 수 있어요.</p>
+          <p>오프라인 동기화는 욕심내지 마세요. 충돌 해결까지 들어가면 난이도가 백엔드 전체보다 높아집니다.</p>
+        </div>
+        <div class="call learn">
+          <span class="tag">학습 포인트</span>
+          <p>Phase 3에서 presigned 방식으로 만들어 둔 게 여기서 값을 합니다. 클라이언트가 바뀌어도 업로드 로직은 그대로예요 — 나중에 모바일 앱을 붙일 때도 마찬가지입니다.</p>
+        </div>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<hr class="rule">
+
+<section>
+  <h2>일정 감각</h2>
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr><th>구간</th><th>단계</th><th>예상</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>기반</td><td class="n">00 – 01</td><td class="n">4~5일</td></tr>
+        <tr><td>핵심 기능</td><td class="n">02 – 03</td><td class="n">5~6일</td></tr>
+        <tr><td>관계와 권한</td><td class="n">04 – 05</td><td class="n">5~6일</td></tr>
+        <tr><td>완성도와 배포</td><td class="n">06 – 07</td><td class="n">4~5일</td></tr>
+        <tr><td>데스크톱 클라이언트</td><td class="n">08</td><td class="n">1~2주</td></tr>
+        <tr class="total"><td>전체</td><td class="n">00 – 08</td><td class="n">6~8주</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">평일 저녁 두어 시간 + 주말 기준입니다. Phase 01과 04에서 예상보다 오래 걸리는 게 정상이에요 — 그 두 곳이 실제로 어려운 부분입니다.</p>
+</section>
+
+<hr class="rule">
+
+<section>
+  <h2>참고</h2>
+  <div class="links">
+    <a href="https://docs.nestjs.com/security/authentication" target="_blank" rel="noopener">NestJS Authentication<span>docs.nestjs.com</span></a>
+    <a href="https://typeorm.io/relations" target="_blank" rel="noopener">TypeORM Relations<span>typeorm.io</span></a>
+    <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/PresignedUrlUploadObject.html" target="_blank" rel="noopener">S3 Presigned Upload<span>docs.aws.amazon.com</span></a>
+    <a href="https://v2.tauri.app/plugin/http-client/" target="_blank" rel="noopener">Tauri HTTP Client<span>v2.tauri.app</span></a>
+  </div>
+</section>
+
+<footer>
+  체크 상태는 이 브라우저에만 저장됩니다.
+</footer>
+
+</div>
+
+<script>
+(function () {
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('ul.check input[type="checkbox"]'));
+  var fill = document.getElementById('fill');
+  var count = document.getElementById('count');
+  var KEY = 'todo-api-roadmap-v1';
+  var state = {};
+
+  try {
+    var raw = localStorage.getItem(KEY);
+    if (raw) state = JSON.parse(raw) || {};
+  } catch (e) { state = {}; }
+
+  function render() {
+    var done = boxes.filter(function (b) { return b.checked; }).length;
+    var ratio = boxes.length ? done / boxes.length : 0;
+    fill.style.transform = 'scaleX(' + ratio.toFixed(4) + ')';
+    count.textContent = done + ' / ' + boxes.length;
+  }
+
+  boxes.forEach(function (b) {
+    var k = b.getAttribute('data-k');
+    if (state[k]) b.checked = true;
+    b.addEventListener('change', function () {
+      state[k] = b.checked;
+      try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+      render();
+    });
+  });
+
+  render();
+})();
+</script>
+
+</body>
+</html>
